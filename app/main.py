@@ -5,12 +5,7 @@ import pickle
 
 # model = joblib.load('app/model.joblib')
 
-with open('app/diabetes.pkl', 'rb') as file:
-    model = pickle.load(file)
 
-with open('app/heartattack.pkl', 'rb') as file:
-    transformer = pickle.load(file)
-    
 with open('app/model.pkl', 'rb') as file:
     model = pickle.load(file)
 
@@ -25,12 +20,6 @@ def read_root():
 @app.get('/get')
 def get():
     return {'message': 'Iris model API'}
-
-@app.post('/predictdiabetes')
-def predict(data: dict):
-    return_data = model.predict(text)
-
-    return {'hate_speech_level': return_data[0]}
 
 @app.post('/predict')
 def predict(data: dict):
