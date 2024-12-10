@@ -10,6 +10,12 @@ with open('app/diabetes.pkl', 'rb') as file:
 
 with open('app/heartattack.pkl', 'rb') as file:
     transformer = pickle.load(file)
+    
+with open('app/model.pkl', 'rb') as file:
+    model = pickle.load(file)
+
+with open('app/transformer.pkl', 'rb') as file:
+    transformer = pickle.load(file)
 
 app = FastAPI()
 
@@ -22,6 +28,13 @@ def get():
 
 @app.post('/predictdiabetes')
 def predict(data: dict):
+    return_data = model.predict(text)
+
+    return {'hate_speech_level': return_data[0]}
+
+@app.post('/predict')
+def predict(data: dict):
+    text = transformer.transform([data['text']]).toarray()
     return_data = model.predict(text)
 
     return {'hate_speech_level': return_data[0]}
