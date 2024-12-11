@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import joblib
 import numpy as np
 import pickle
 
@@ -21,32 +22,50 @@ def get():
     return {'message': 'Iris model API'}
 
 
+
 @app.post('/predict')
 def predict(data: dict):
-    """
-    Predict the likelihood of a heart attack based on input data.
-
-    Input:
-    - data: JSON object with numeric features.
+    required_fields = [
+        'age', 'sex', 'chest_pain_type', 'resting_bp', 'cholesterol', 
+        'fasting_blood_sugar', 'resting_ecg', 'max_heart_rate', 
+        'exercise_angina', 'oldpeak', 'st_slope'
+    ]
     
-    Example input:
-    {
-        "numeric_features": [age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal]
-    }
-    """
-    try:
-        # Extract numeric features
-        numeric_data = np.array(data['numeric_features']).reshape(1, -1)
-        
-        # Scale the features
-        scaled_data = scaler.transform(numeric_data)
-        
-        # Make a prediction
-        prediction = model.predict(scaled_data)
+    # Check if all required fields are present
+    missing_fields = [field for field in required_fields if field not in data]
+    if missing_fields:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Missing required fields: {', '.join(missing_fields)}"
+        )
 
-        # Return the result
-        return {'heart_attack_risk': prediction[0]}
+    try:
+        # Extract features from input data
+        features = np.array([
+            data['age'],
+            data['sex'],
+            data['chest_pain_type'],
+            data['resting_bp'],
+            data['cholesterol'],
+            data['fasting_blood_sugar'],
+            data['resting_ecg'],
+            data['max_heart_rate'],
+            data['exercise_angina'],
+            data['oldpeak'],
+            data['st_slope']
+        ])
+
+        # Reshape features to 2D array (one sample)
+        features = features.reshape(1, -1)
+
+        # Apply the same scaler used during training
+        features_scaled = scaler.transform(features)
+
+        # Predict using the trained model
+        prediction = model.predict(features_scaled)
+
+        # Return the prediction result
+        return {'prediction': prediction[0]}
+    
     except KeyError as e:
-        return {'error': f'Missing key in input data: {str(e)}'}
-    except Exception as e:
-        return {'error': str(e)}
+        raise HTTPException(status_code=400, detail=f"Key error: {str(e)}")
