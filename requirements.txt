@@ -1,5 +1,5 @@
-scikit-learn==1.2.2
+scikit-learn==1.6.0
 fastapi
-numpy>=1.21.6,<1.25
+numpy==2.2.0
 uvicorn
 joblib==1.4.2
