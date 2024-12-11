@@ -2,15 +2,7 @@ from fastapi import FastAPI
 import joblib
 import numpy as np
 import pickle
-print("NumPy version:", np.__version__)
 
-# model = joblib.load('app/model.joblib')
-
-with open('app/scaler.pkl', 'rb') as f:
-    scaler = pickle.load(f)
-
-with open('app/heartattack.pkl', 'rb') as f:
-    model = pickle.load(f)
 
 
 app = FastAPI()
@@ -26,13 +18,12 @@ def get():
 
 @app.post('/predict')
 def predict(data: dict):
-    required_fields = [
-        'age', 'sex', 'chest_pain_type', 'resting_bp', 'cholesterol', 
-        'fasting_blood_sugar', 'resting_ecg', 'max_heart_rate', 
-        'exercise_angina', 'oldpeak', 'st_slope'
-    ]
-    
+    with open('app/scaler.pkl', 'rb') as f:
+        scaler = pickle.load(f)
 
+    with open('app/heartattack.pkl', 'rb') as f:
+        model = pickle.load(f)
+    
         # Extract features from input data
     features = np.array([
         data['age'],
