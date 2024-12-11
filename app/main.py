@@ -9,7 +9,7 @@ with open('app/scaler.pkl', 'rb') as f:
     scaler = pickle.load(f)
 
 with open('app/heartattack.pkl', 'rb') as f:
-    scaler = pickle.load(f)
+    model = pickle.load(f)
 
 
 app = FastAPI()
@@ -31,41 +31,32 @@ def predict(data: dict):
         'exercise_angina', 'oldpeak', 'st_slope'
     ]
     
-    # Check if all required fields are present
-    missing_fields = [field for field in required_fields if field not in data]
-    if missing_fields:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Missing required fields: {', '.join(missing_fields)}"
-        )
 
-    try:
         # Extract features from input data
-        features = np.array([
-            data['age'],
-            data['sex'],
-            data['chest_pain_type'],
-            data['resting_bp'],
-            data['cholesterol'],
-            data['fasting_blood_sugar'],
-            data['resting_ecg'],
-            data['max_heart_rate'],
-            data['exercise_angina'],
-            data['oldpeak'],
-            data['st_slope']
-        ])
+    features = np.array([
+        data['age'],
+        data['sex'],
+        data['resting_bp_s'],
+        data['cholesterol'],
+        data['fasting_blood_sugar'],
+        data['max_heart_rate'],
+        data['exercise_angina'],
+        data['oldpeak'],
+        data['chest_pain_type_1'],
+        data['chest_pain_type_2'],
+        data['chest_pain_type_3'],
+        data['chest_pain_type_4'],
+        data['resting_ecg_0'],
+        data['resting_ecg_1'],
+        data['resting_ecg_2'],
+        data['st_slope_0'],
+        data['st_slope_1'],
+        data['st_slope_2'],
+        data['st_slope_3']
+    ])
+    features = features.reshape(1, -1)
+    features = scaler.transform(features)
+    prediction = model.predict(features)
 
-        # Reshape features to 2D array (one sample)
-        features = features.reshape(1, -1)
 
-        # Apply the same scaler used during training
-        features_scaled = scaler.transform(features)
-
-        # Predict using the trained model
-        prediction = model.predict(features_scaled)
-
-        # Return the prediction result
-        return {'prediction': prediction[0]}
-    
-    except KeyError as e:
-        raise HTTPException(status_code=400, detail=f"Key error: {str(e)}")
+    return {'features': features.tolist(), 'prediction': prediction.tolist()}
