@@ -2,6 +2,7 @@ from fastapi import FastAPI
 import joblib
 import numpy as np
 import pickle
+print("NumPy version:", np.__version__)
 
 # model = joblib.load('app/model.joblib')
 
