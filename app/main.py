@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 import numpy as np
 import pickle
-import pandas as pd
 
 app = FastAPI()
 
@@ -26,34 +25,39 @@ with open('app/heartattack/feature_names.pkl', 'rb') as f:
 
 @app.post('/predict')
 def predict(data: dict):
-    # Validate input
-    required_keys = [
-        'age', 'sex', 'resting_bp_s', 'cholesterol', 'fasting_blood_sugar',
-        'max_heart_rate', 'exercise_angina', 'oldpeak', 'chest_pain_type',
-        'resting_ecg', 'st_slope'
+
+    new_data = [
+        data["age"],  # Adjusted
+        data["sex"],  # Adjusted
+        data["resting_bp_s"],  # Adjusted
+        data["cholesterol"],  # Adjusted
+        data["fasting_blood_sugar"],  # Adjusted
+        data["max_heart_rate"],  # Adjusted
+        data["exercise_angina"],  # Adjusted
+        data["oldpeak"],  # Adjusted
+
+        # Chest pain type (one-hot encoded)
+        1 if data["chest_pain_type"] == 1 else 0,
+        1 if data["chest_pain_type"] == 2 else 0,  # Corresponding to the original chest_pain_type value of 2
+        1 if data["chest_pain_type"] == 3 else 0,
+        1 if data["chest_pain_type"] == 4 else 0,
+
+        # Resting ECG (one-hot encoded)
+        1 if data["resting_ecg"] == 0 else 0,
+        1 if data["resting_ecg"] == 1 else 0,
+        1 if data["resting_ecg"] == 2 else 0,
+
+        # ST slope (one-hot encoded)
+        1 if data["st_slope"] == 0 else 0,
+        1 if data["st_slope"] == 1 else 0,
+        1 if data["st_slope"] == 2 else 0,
+        1 if data["st_slope"] == 3 else 0,
     ]
-    missing_keys = [key for key in required_keys if key not in data]
-    if missing_keys:
-        raise HTTPException(status_code=400, detail=f"Missing keys in input: {', '.join(missing_keys)}")
 
-    # Convert input to DataFrame
-    input_data = pd.DataFrame([data])
-    # One-hot encode categorical columns
-    encoded_data = pd.get_dummies(
-        input_data,
-        columns=['chest_pain_type', 'resting_ecg', 'st_slope'],
-        drop_first=False
-    )
-    print(encoded_data)
-
-    # Reindex to match training columns
-    encoded_data = encoded_data.reindex(columns=feature_names, fill_value=0)
-
-    # Scale features
-    features = scaler.transform(encoded_data)
-
-    # Make predictions
+    features = np.array(new_data)
+    features = features.reshape(1, -1)
+    features = scaler.transform(features)
     prediction = model.predict(features)
 
-    return {'features': features.tolist(), 'prediction': prediction.tolist()}
 
+    return {'features': features.tolist(), 'prediction': prediction.tolist()}
