@@ -38,13 +38,13 @@ def predict(data: dict):
 
     # Convert input to DataFrame
     input_data = pd.DataFrame([data])
-    print(input_data)
     # One-hot encode categorical columns
     encoded_data = pd.get_dummies(
         input_data,
         columns=['chest_pain_type', 'resting_ecg', 'st_slope'],
         drop_first=False
     )
+    print(encoded_data)
 
     # Reindex to match training columns
     encoded_data = encoded_data.reindex(columns=feature_names, fill_value=0)
