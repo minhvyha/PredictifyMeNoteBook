@@ -1,9 +1,7 @@
 from fastapi import FastAPI
-import joblib
 import numpy as np
 import pickle
-
-
+import pandas as pd
 
 app = FastAPI()
 
@@ -18,37 +16,38 @@ def get():
 
 @app.post('/predict')
 def predict(data: dict):
-    with open('app/scaler.pkl', 'rb') as f:
+    with open('app/heartattack/scaler.pkl', 'rb') as f:
         scaler = pickle.load(f)
 
-    with open('app/heartattack.pkl', 'rb') as f:
+    with open('app/heartattack/heartattack.pkl', 'rb') as f:
         model = pickle.load(f)
     
+    with open('app/heartattack/feature_names.pkl', 'rb') as f:
+        feature_names = pickle.load(f)
+
+
         # Extract features from input data
-    features = np.array([
-        data['age'],
-        data['sex'],
-        data['resting_bp_s'],
-        data['cholesterol'],
-        data['fasting_blood_sugar'],
-        data['max_heart_rate'],
-        data['exercise_angina'],
-        data['oldpeak'],
-        data['chest_pain_type_1'],
-        data['chest_pain_type_2'],
-        data['chest_pain_type_3'],
-        data['chest_pain_type_4'],
-        data['resting_ecg_0'],
-        data['resting_ecg_1'],
-        data['resting_ecg_2'],
-        data['st_slope_0'],
-        data['st_slope_1'],
-        data['st_slope_2'],
-        data['st_slope_3']
-    ])
-    features = features.reshape(1, -1)
-    features = scaler.transform(features)
+    input_data = pd.DataFrame([data])
+
+    # Apply pd.get_dummies for one-hot encoding
+    encoded_data = pd.get_dummies(
+        input_data,
+        columns=['chest_pain_type', 'resting_ecg', 'st_slope'],
+        drop_first=False
+    )
+
+    # Add missing columns and reorder
+    for col in feature_names:
+        if col not in encoded_data:
+            encoded_data[col] = 0  # Add missing columns as zeros
+    encoded_data = encoded_data[feature_names]  # Reorder to match training
+
+    # Scale features
+    features = scaler.transform(encoded_data)
+
+    # Make predictions
     prediction = model.predict(features)
 
-
     return {'features': features.tolist(), 'prediction': prediction.tolist()}
+
+
