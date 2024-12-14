@@ -12,35 +12,42 @@ def read_root():
 def get():
     return {'message': 'Iris model API'}
 
+# Load pre-trained artifacts once to avoid reloading for every request
+with open('app/heartattack/scaler.pkl', 'rb') as f:
+    scaler = pickle.load(f)
+
+with open('app/heartattack/heartattack.pkl', 'rb') as f:
+    model = pickle.load(f)
+
+with open('app/heartattack/feature_names.pkl', 'rb') as f:
+    feature_names = pickle.load(f)
+
 
 
 @app.post('/predict')
 def predict(data: dict):
-    with open('app/heartattack/scaler.pkl', 'rb') as f:
-        scaler = pickle.load(f)
+    # Validate input
+    required_keys = [
+        'age', 'sex', 'resting_bp_s', 'cholesterol', 'fasting_blood_sugar',
+        'max_heart_rate', 'exercise_angina', 'oldpeak', 'chest_pain_type',
+        'resting_ecg', 'st_slope'
+    ]
+    missing_keys = [key for key in required_keys if key not in data]
+    if missing_keys:
+        raise HTTPException(status_code=400, detail=f"Missing keys in input: {', '.join(missing_keys)}")
 
-    with open('app/heartattack/heartattack.pkl', 'rb') as f:
-        model = pickle.load(f)
-    
-    with open('app/heartattack/feature_names.pkl', 'rb') as f:
-        feature_names = pickle.load(f)
-
-
-        # Extract features from input data
+    # Convert input to DataFrame
     input_data = pd.DataFrame([data])
 
-    # Apply pd.get_dummies for one-hot encoding
+    # One-hot encode categorical columns
     encoded_data = pd.get_dummies(
         input_data,
         columns=['chest_pain_type', 'resting_ecg', 'st_slope'],
         drop_first=False
     )
 
-    # Add missing columns and reorder
-    for col in feature_names:
-        if col not in encoded_data:
-            encoded_data[col] = 0  # Add missing columns as zeros
-    encoded_data = encoded_data[feature_names]  # Reorder to match training
+    # Reindex to match training columns
+    encoded_data = encoded_data.reindex(columns=feature_names, fill_value=0)
 
     # Scale features
     features = scaler.transform(encoded_data)
@@ -49,5 +56,4 @@ def predict(data: dict):
     prediction = model.predict(features)
 
     return {'features': features.tolist(), 'prediction': prediction.tolist()}
-
 
