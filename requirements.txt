@@ -3,3 +3,4 @@ fastapi
 numpy==2.2.0
 uvicorn
 joblib==1.4.2
+pandas
