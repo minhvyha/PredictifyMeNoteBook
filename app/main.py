@@ -38,7 +38,7 @@ def predict(data: dict):
 
     # Convert input to DataFrame
     input_data = pd.DataFrame([data])
-
+    print(input_data)
     # One-hot encode categorical columns
     encoded_data = pd.get_dummies(
         input_data,
