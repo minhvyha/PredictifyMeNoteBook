@@ -13,20 +13,22 @@ def get():
 
 # Load pre-trained artifacts once to avoid reloading for every request
 with open('app/heartattack/scaler.pkl', 'rb') as f:
-    scaler = pickle.load(f)
+    heartattack_scaler = pickle.load(f)
 
 with open('app/heartattack/heartattack.pkl', 'rb') as f:
-    model = pickle.load(f)
+    heartattack_model = pickle.load(f)
 
-with open('app/heartattack/feature_names.pkl', 'rb') as f:
-    feature_names = pickle.load(f)
+with open('app/diabetes/diabetes.pkl', 'rb') as f:
+    diabetes_model = pickle.load(f)
 
+with open('app/diabetes/scaler.pkl', 'rb') as f:
+    diabetes_scaler = pickle.load(f)
 
 
 @app.post('/predict')
 def predict(data: dict):
 
-    new_data = [
+    heartattack_data = [
         data["age"],  # Adjusted
         data["sex"],  # Adjusted
         data["resting_bp_s"],  # Adjusted
@@ -53,11 +55,34 @@ def predict(data: dict):
         1 if data["st_slope"] == 2 else 0,
         1 if data["st_slope"] == 3 else 0,
     ]
+    
+    # Exclude data['sex'] for initial diabetes_data list
+    diabetes_data = [
+        data["age"],
+        data["hypertension"],
+        data["heart_disease"],
+        data["bmi"],
+        data["HbA1c_level"],
+        data["blood_glucose_level"]
+    ]
 
-    features = np.array(new_data)
-    features = features.reshape(1, -1)
-    features = scaler.transform(features)
-    prediction = model.predict(features)
+    print(diabetes_data)
+
+    # Convert the diabetes_data into a NumPy array and reshape it
+    diabetes_features = np.array(diabetes_data).reshape(1, -1)
+
+    # Scale the features
+    diabetes_features = diabetes_scaler.transform(diabetes_features)
+
+    # Add 'sex' after scaling
+    diabetes_features = np.insert(diabetes_features, 0, data["sex"], axis=1)
+    diabetes_prediction = diabetes_model.predict(diabetes_features)
+
+    print(diabetes_features)
+    heartattack_features = np.array(heartattack_data)
+    heartattack_features = heartattack_features.reshape(1, -1)
+    heartattack_features = heartattack_scaler.transform(heartattack_features)
+    heartattack_prediction = heartattack_model.predict(heartattack_features)
 
 
-    return {'features': features.tolist(), 'prediction': prediction.tolist()}
+    return {'heartattack': heartattack_prediction.tolist(), 'diabetes': diabetes_prediction.tolist()}
