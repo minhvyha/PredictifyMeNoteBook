@@ -1,0 +1,18 @@
+,name,role,type,demographic,description,units,missing_values
+0,Gender,Feature,Categorical,Gender,,,no
+1,Age,Feature,Continuous,Age,,,no
+2,Height,Feature,Continuous,,,,no
+3,Weight,Feature,Continuous,,,,no
+4,family_history_with_overweight,Feature,Binary,,Has a family member suffered or suffers from overweight?,,no
+5,FAVC,Feature,Binary,,Do you eat high caloric food frequently?,,no
+6,FCVC,Feature,Integer,,Do you usually eat vegetables in your meals?,,no
+7,NCP,Feature,Continuous,,How many main meals do you have daily?,,no
+8,CAEC,Feature,Categorical,,Do you eat any food between meals?,,no
+9,SMOKE,Feature,Binary,,Do you smoke?,,no
+10,CH2O,Feature,Continuous,,How much water do you drink daily?,,no
+11,SCC,Feature,Binary,,Do you monitor the calories you eat daily?,,no
+12,FAF,Feature,Continuous,,How often do you have physical activity?,,no
+13,TUE,Feature,Integer,,"How much time do you use technological devices such as cell phone, videogames, television, computer and others?",,no
+14,CALC,Feature,Categorical,,How often do you drink alcohol?,,no
+15,MTRANS,Feature,Categorical,,Which transportation do you usually use?,,no
+16,NObeyesdad,Target,Categorical,,Obesity level,,no
