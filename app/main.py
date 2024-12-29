@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import numpy as np
 import pickle
 
+
 app = FastAPI()
 
 # Add CORS middleware
