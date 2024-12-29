@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import numpy as np
 import pickle
-
+import pandas as pd
 
 app = FastAPI()
 
@@ -77,11 +77,15 @@ def predict(data: dict):
         data["blood_glucose_level"]
     ]
 
-    print(diabetes_data)
+    df = pd.DataFrame([data])
+    
+    # Example preprocessing: One-hot encode categorical columns
+    categorical_columns = ['chest_pain_type', 'resting_ecg', 'st_slope']
+    df = pd.get_dummies(df, columns=categorical_columns, prefix=categorical_columns)
+    df = np.array(df)
 
     # Convert the diabetes_data into a NumPy array and reshape it
     diabetes_features = np.array(diabetes_data).reshape(1, -1)
-
     # Scale the features
     diabetes_features = diabetes_scaler.transform(diabetes_features)
 
@@ -89,7 +93,6 @@ def predict(data: dict):
     diabetes_features = np.insert(diabetes_features, 0, data["sex"], axis=1)
     diabetes_prediction = diabetes_model.predict(diabetes_features)
 
-    print(diabetes_features)
     heartattack_features = np.array(heartattack_data)
     heartattack_features = heartattack_features.reshape(1, -1)
     heartattack_features = heartattack_scaler.transform(heartattack_features)
